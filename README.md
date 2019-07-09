@@ -1,0 +1,2 @@
+# MsBuildHtmlLogger
+MsBuild Html Logger
