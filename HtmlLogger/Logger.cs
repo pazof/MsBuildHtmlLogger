@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -55,7 +56,30 @@ namespace HtmlLogger
                 file.Delete();
             }
 
-            stream = new StreamWriter(file.FullName, true);
+            Process pstreaming;
+
+            var streamingCmd = Environment.GetEnvironmentVariable("MSLOGGER_STREAMING_CMD");
+            if (string.IsNullOrWhiteSpace(streamingCmd))
+            {
+                stream = new StreamWriter(file.FullName, true);
+            }
+            else {
+                var parts = streamingCmd.Split(' ');
+                var fileName = parts[0];
+                var arguments = string.Join(" ", parts.Skip(1).ToArray());
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                    FileName = fileName,
+                    RedirectStandardInput = true,
+                    UseShellExecute = false
+                };
+
+                pstreaming = Process.Start(startInfo);
+                stream = pstreaming.StandardInput;
+            }
 
             writtingTask = Task.Run(() => {
                 do
